@@ -1,5 +1,11 @@
 # English Pronunciation Coach
 
+## 데모 영상
+
+[![데모 영상](https://img.youtube.com/vi/VIDEO_ID/maxresdefault.jpg)](https://youtu.be/VIDEO_ID)
+
+---
+
 영어 학습자가 AI 합성 음성을 듣고 따라 읽으면, **음소 단위 음향 시계열**을 분석해
 혀·턱·입술 중심의 **물리적 교정 처방**을 내려 주는 단일 페이지 웹앱.
 
