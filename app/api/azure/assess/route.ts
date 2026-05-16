@@ -66,7 +66,9 @@ function parsePhoneme(p: Json): AzurePhoneme {
   const pa = (p['PronunciationAssessment'] as Json) || {};
   const token = String(p['Phoneme'] ?? '');
   let soundLike = token;
-  const nbest = p['NBestPhonemes'];
+  // Azure nests the n-best phoneme list under PronunciationAssessment;
+  // fall back to the phoneme node itself for older response shapes.
+  const nbest = pa['NBestPhonemes'] ?? p['NBestPhonemes'];
   if (Array.isArray(nbest) && nbest.length > 0) {
     const top = nbest[0] as Json;
     if (top && top['Phoneme'] != null) soundLike = String(top['Phoneme']);

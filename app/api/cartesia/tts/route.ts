@@ -1,8 +1,10 @@
 /**
  * POST /api/cartesia/tts
  * Server-side proxy for Cartesia streaming TTS with word timestamps
- * (SPEC §1 Step 2, §3). Accumulates the SSE stream and returns the full
- * MP3 (base64) plus per-word timestamps.
+ * (SPEC §1 Step 2, §3). The /tts/sse endpoint only accepts the `raw`
+ * container, so we request 16-bit PCM, accumulate the SSE stream, and
+ * wrap the bytes in a WAV header before returning (base64) along with
+ * per-word timestamps.
  */
 import { NextResponse } from 'next/server';
 import type { CartesiaWord } from '@/lib/types';
@@ -13,10 +15,30 @@ export const maxDuration = 60;
 
 const CARTESIA_VERSION = '2024-06-10';
 const DEMO_SENTINEL = '__demo__';
+const PCM_SAMPLE_RATE = 44100;
 
 interface TtsRequest {
   transcript?: string;
   voiceId?: string;
+}
+
+/** Wrap raw 16-bit little-endian mono PCM bytes into a WAV container. */
+function encodeWavFromPcm16(pcm: Buffer, sampleRate: number): Buffer {
+  const header = Buffer.alloc(44);
+  header.write('RIFF', 0);
+  header.writeUInt32LE(36 + pcm.length, 4);
+  header.write('WAVE', 8);
+  header.write('fmt ', 12);
+  header.writeUInt32LE(16, 16); // PCM chunk size
+  header.writeUInt16LE(1, 20); // audio format = PCM
+  header.writeUInt16LE(1, 22); // channels = mono
+  header.writeUInt32LE(sampleRate, 24);
+  header.writeUInt32LE(sampleRate * 2, 28); // byte rate
+  header.writeUInt16LE(2, 32); // block align
+  header.writeUInt16LE(16, 34); // bits per sample
+  header.write('data', 36);
+  header.writeUInt32LE(pcm.length, 40);
+  return Buffer.concat([header, pcm]);
 }
 
 export async function POST(req: Request) {
@@ -64,9 +86,9 @@ export async function POST(req: Request) {
     voice: { mode: 'id', id: voiceId },
     language: 'en',
     output_format: {
-      container: 'mp3',
-      sample_rate: 44100,
-      bit_rate: 128000,
+      container: 'raw',
+      encoding: 'pcm_s16le',
+      sample_rate: PCM_SAMPLE_RATE,
     },
     add_timestamps: true,
   };
@@ -154,10 +176,11 @@ export async function POST(req: Request) {
     );
   }
 
-  const audio = Buffer.concat(audioParts);
+  const pcm = Buffer.concat(audioParts);
+  const wav = encodeWavFromPcm16(pcm, PCM_SAMPLE_RATE);
   return NextResponse.json({
-    audio: audio.toString('base64'),
-    mime: 'audio/mpeg',
+    audio: wav.toString('base64'),
+    mime: 'audio/wav',
     words,
   });
 }
