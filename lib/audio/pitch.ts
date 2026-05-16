@@ -21,7 +21,8 @@ export function computePitch(
   times: Float32Array,
 ): PitchFrame[] {
   const detector = PitchDetector.forFloat32Array(PITCH_WIN);
-  detector.clarityThreshold = 0; // keep raw clarity; we threshold ourselves
+  // pitchy requires (0, 1]; use a tiny value so we effectively threshold ourselves below.
+  detector.clarityThreshold = Number.EPSILON;
   const buf = new Float32Array(PITCH_WIN);
   const out: PitchFrame[] = [];
 

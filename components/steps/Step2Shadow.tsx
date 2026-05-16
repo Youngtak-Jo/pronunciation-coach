@@ -178,7 +178,7 @@ export function Step2Shadow() {
       </Card>
 
       {/* Sentence + controls */}
-      <Card>
+      <Card className="min-w-0">
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle className="text-xl">

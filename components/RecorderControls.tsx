@@ -141,6 +141,23 @@ export function RecorderControls({
     }
   }, [disabled, processing, drawMeter, maxSeconds, stop, onError]);
 
+  // Redraw the idle meter when the wrapper resizes so the canvas stays in sync
+  // with its container. During recording, the RAF loop already redraws every
+  // frame, so we only need to trigger a draw while idle.
+  useEffect(() => {
+    const el = wrapRef.current;
+    if (!el) return;
+    const measure = () => {
+      if (!recording) drawMeter();
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => {
+      ro.disconnect();
+    };
+  }, [drawMeter, recording]);
+
   // while recording: animate every frame; while idle: a single static draw
   useEffect(() => {
     if (!recording) {
