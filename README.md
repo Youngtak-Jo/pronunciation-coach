@@ -2,7 +2,7 @@
 
 ## 데모 영상
 
-[![데모 영상](https://img.youtube.com/vi/VIDEO_ID/maxresdefault.jpg)](https://youtu.be/VIDEO_ID)
+[![데모 영상](https://img.youtube.com/vi/krYWNurVJew/maxresdefault.jpg)](https://youtube.com/shorts/krYWNurVJew)
 
 ---
 
